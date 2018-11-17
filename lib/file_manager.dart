@@ -19,6 +19,7 @@ class _FileManagerState extends State<FileManager> {
   ScrollController controller = ScrollController();
   int count = 0; // 记录当前文件夹中以 . 开头的文件和文件夹
   String sDCardDir;
+  List<double> position = [];
 
   @override
   void initState() {
@@ -38,6 +39,7 @@ class _FileManagerState extends State<FileManager> {
       onWillPop: () {
         if (parentDir.path != sDCardDir) {
           initDirectory(parentDir.parent.path);
+          jumpToPosition(false);
         } else {
           SystemNavigator.pop();
         }
@@ -61,38 +63,49 @@ class _FileManagerState extends State<FileManager> {
                     onPressed: () {
                       if (parentDir.path != sDCardDir) {
                         initDirectory(parentDir.parent.path);
+                        jumpToPosition(false);
                       } else {
                         Navigator.pop(context);
                       }
                     }),
           ),
           backgroundColor: Color(0xfff3f3f3),
-          body: files.length != 0
-              ? Scrollbar(
+          body: Scrollbar(
                   child: ListView.builder(
                     controller: controller,
-                    itemCount: files.length,
+                    itemCount: files.length != 0 ? files.length : 1,
                     itemBuilder: (BuildContext context, int index) {
-                      return buildListViewItem(files[index]);
+                      if (files.length != 0)
+                        return buildListViewItem(files[index]);
+                      else
+                        return Padding(
+                          padding: EdgeInsets.only(top: MediaQuery.of(context).size.height / 2 - MediaQuery.of(context).padding.top - 56.0),
+                          child: Center(
+                            child: Text('The folder is empty'),
+                          ),
+                        );
                     },
                   ),
                 )
-              : ListView(
-                  controller: controller,
-                  children: <Widget>[
-                    Padding(
-                      padding: EdgeInsets.only(top: MediaQuery.of(context).size.height / 2 - MediaQuery.of(context).padding.top - 56.0),
-                      child: Center(
-                        child: Text('The folderddd is empty'),
-                      ),
-                    )
-                  ],
-                )),
+           ),
     );
+  }
+
+  // 计算文件夹内 文件、文件夹的数量，以 . 开头的除外
+  removePointBegin(Directory path){
+    var dir = Directory(path.path).listSync();
+    int num = dir.length;
+
+    for (int i = 0; i < dir.length; i++) {
+      if (dir[i].path.substring(dir[i].parent.path.length + 1).substring(0, 1) == '.')
+        num--;
+    }
+    return num;
   }
 
   buildListViewItem(FileSystemEntity file) {
     var isFile = FileSystemEntity.isFileSync(file.path);
+
     // 去除以 . 开头的文件和文件夹
     if (file.path.substring(file.parent.path.length + 1).substring(0, 1) == '.') {
       count++;
@@ -108,12 +121,21 @@ class _FileManagerState extends State<FileManager> {
       }
     }
 
+    int length = 0;
+    if (!isFile)
+      length = removePointBegin(file);
+
     return ClickEffect(
       child: Column(
         children: <Widget>[
           ListTile(
             leading: Image.asset(selectIcon(isFile, file)),
-            title: Text(file.path.substring(file.parent.path.length + 1)),
+            title: Row(
+              children: <Widget>[
+                Expanded(child: Text(file.path.substring(file.parent.path.length + 1))),
+                isFile ? Container() : Text('$length项', style: TextStyle(color: Colors.grey),)
+              ],
+            ),
             trailing: isFile ? null : Icon(Icons.chevron_right),
           ),
           Padding(
@@ -125,12 +147,24 @@ class _FileManagerState extends State<FileManager> {
         ],
       ),
       onTap: () {
-        if (!isFile)
+        if (!isFile) {
+          position.insert(position.length, controller.offset);
           initDirectory(file.path);
+          jumpToPosition(true);
+        }
         else
           openFile(file.path);
       },
     );
+  }
+
+  void jumpToPosition(bool isEnter) {
+    if (isEnter)
+      controller.jumpTo(0.0);
+    else {
+      controller.jumpTo(position[position.length - 1]);
+      position.removeLast();
+    }
   }
 
   Future<void> initDirectory(String path) async {
@@ -141,9 +175,9 @@ class _FileManagerState extends State<FileManager> {
         parentDir = directory;
         files.clear();
         files = directory.listSync();
-        controller.jumpTo(0.0);
       });
     } catch (e) {
+      print(e);
       print("Directory does not exist！");
     }
   }
