@@ -71,34 +71,32 @@ class _FileManagerState extends State<FileManager> {
           ),
           backgroundColor: Color(0xfff3f3f3),
           body: Scrollbar(
-                  child: ListView.builder(
-                    controller: controller,
-                    itemCount: files.length != 0 ? files.length : 1,
-                    itemBuilder: (BuildContext context, int index) {
-                      if (files.length != 0)
-                        return buildListViewItem(files[index]);
-                      else
-                        return Padding(
-                          padding: EdgeInsets.only(top: MediaQuery.of(context).size.height / 2 - MediaQuery.of(context).padding.top - 56.0),
-                          child: Center(
-                            child: Text('The folder is empty'),
-                          ),
-                        );
-                    },
-                  ),
-                )
-           ),
+            child: ListView.builder(
+              controller: controller,
+              itemCount: files.length != 0 ? files.length : 1,
+              itemBuilder: (BuildContext context, int index) {
+                if (files.length != 0)
+                  return buildListViewItem(files[index]);
+                else
+                  return Padding(
+                    padding: EdgeInsets.only(top: MediaQuery.of(context).size.height / 2 - MediaQuery.of(context).padding.top - 56.0),
+                    child: Center(
+                      child: Text('The folder is empty'),
+                    ),
+                  );
+              },
+            ),
+          )),
     );
   }
 
   // 计算文件夹内 文件、文件夹的数量，以 . 开头的除外
-  removePointBegin(Directory path){
+  removePointBegin(Directory path) {
     var dir = Directory(path.path).listSync();
     int num = dir.length;
 
     for (int i = 0; i < dir.length; i++) {
-      if (dir[i].path.substring(dir[i].parent.path.length + 1).substring(0, 1) == '.')
-        num--;
+      if (dir[i].path.substring(dir[i].parent.path.length + 1).substring(0, 1) == '.') num--;
     }
     return num;
   }
@@ -122,8 +120,7 @@ class _FileManagerState extends State<FileManager> {
     }
 
     int length = 0;
-    if (!isFile)
-      length = removePointBegin(file);
+    if (!isFile) length = removePointBegin(file);
 
     return ClickEffect(
       child: Column(
@@ -133,9 +130,15 @@ class _FileManagerState extends State<FileManager> {
             title: Row(
               children: <Widget>[
                 Expanded(child: Text(file.path.substring(file.parent.path.length + 1))),
-                isFile ? Container() : Text('$length项', style: TextStyle(color: Colors.grey),)
+                isFile
+                    ? Container()
+                    : Text(
+                        '$length项',
+                        style: TextStyle(color: Colors.grey),
+                      )
               ],
             ),
+            subtitle: isFile ? Text(getFileSize(file)) : null,
             trailing: isFile ? null : Icon(Icons.chevron_right),
           ),
           Padding(
@@ -151,8 +154,7 @@ class _FileManagerState extends State<FileManager> {
           position.insert(position.length, controller.offset);
           initDirectory(file.path);
           jumpToPosition(true);
-        }
-        else
+        } else
           openFile(file.path);
       },
     );
@@ -179,6 +181,20 @@ class _FileManagerState extends State<FileManager> {
     } catch (e) {
       print(e);
       print("Directory does not exist！");
+    }
+  }
+
+  getFileSize(FileSystemEntity file) {
+    int fileSize = File(file.resolveSymbolicLinksSync()).lengthSync();
+    if (fileSize < 1024) {
+      // b
+      return '${fileSize.toStringAsFixed(2)}B';
+    } else if (1024 <= fileSize && fileSize < 1048576) {
+      // kb
+      return '${(fileSize / 1024).toStringAsFixed(2)}KB';
+    } else if (1048576 <= fileSize && fileSize < 1073741824) {
+      // mb
+      return '${(fileSize / 1024 / 1024).toStringAsFixed(2)}MB';
     }
   }
 
