@@ -138,7 +138,12 @@ class _FileManagerState extends State<FileManager> {
                       )
               ],
             ),
-            subtitle: isFile ? Text(getFileSize(file)) : null,
+            subtitle: isFile
+                ? Text(
+                    '${getFileLastModifiedTime(file)}  ${getFileSize(file)}',
+                    style: TextStyle(fontSize: 12.0),
+                  )
+                : null,
             trailing: isFile ? null : Icon(Icons.chevron_right),
           ),
           Padding(
@@ -196,6 +201,14 @@ class _FileManagerState extends State<FileManager> {
       // mb
       return '${(fileSize / 1024 / 1024).toStringAsFixed(2)}MB';
     }
+  }
+
+  getFileLastModifiedTime(FileSystemEntity file) {
+    DateTime dateTime = File(file.resolveSymbolicLinksSync()).lastModifiedSync();
+
+    String time =
+        '${dateTime.year}-${dateTime.month < 10 ? 0 : ''}${dateTime.month}-${dateTime.day < 10 ? 0 : ''}${dateTime.day} ${dateTime.hour < 10 ? 0 : ''}${dateTime.hour}:${dateTime.minute < 10 ? 0 : ''}${dateTime.minute}';
+    return time;
   }
 
   openFile(String path) {
