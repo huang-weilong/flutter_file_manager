@@ -2,13 +2,14 @@ import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:flutter/services.dart';
 
-import 'package:path_provider/path_provider.dart';
-import 'package:simple_permissions/simple_permissions.dart';
-
 import 'selection_icon.dart';
 import 'click_effect.dart';
 
 class FileManager extends StatefulWidget {
+  FileManager({@required this.sDCardDir});
+
+  final String sDCardDir;
+
   @override
   _FileManagerState createState() => _FileManagerState();
 }
@@ -25,28 +26,7 @@ class _FileManagerState extends State<FileManager> {
   @override
   void initState() {
     super.initState();
-    getPermission();
-  }
-
-  // 权限检查与申请
-  Future<void> getPermission() async {
-    if (Platform.isAndroid) {
-      bool permission1 = await SimplePermissions.checkPermission(Permission.ReadExternalStorage);
-      bool permission2 = await SimplePermissions.checkPermission(Permission.WriteExternalStorage);
-      if (!permission1) {
-        await SimplePermissions.requestPermission(Permission.ReadExternalStorage);
-      }
-      if (!permission2) {
-        await SimplePermissions.requestPermission(Permission.WriteExternalStorage);
-      }
-      getSDCardDir();
-    } else if (Platform.isIOS) {
-      getSDCardDir();
-    }
-  }
-
-  Future<void> getSDCardDir() async {
-    sDCardDir = (await getExternalStorageDirectory()).path;
+    sDCardDir = widget.sDCardDir;
     parentDir = Directory(sDCardDir);
     initDirectory(sDCardDir);
   }
