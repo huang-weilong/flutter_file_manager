@@ -5,40 +5,39 @@ selectIcon(bool type, FileSystemEntity file) {
   try {
     String iconImg;
     if (type) {
-//      String str = (file.path.substring(file.parent.path.length + 1)).split('.')[1];
-      String str = basename(file.path).split('.')[1];
+      String str = extension(file.path);
       switch (str) {
-        case 'ppt':
-        case 'pptx':
+        case '.ppt':
+        case '.pptx':
           iconImg = 'assets/images/ppt.png';
           break;
-        case 'doc':
-        case 'docx':
+        case '.doc':
+        case '.docx':
           iconImg = 'assets/images/word.png';
           break;
-        case 'xls':
-        case 'xlsx':
+        case '.xls':
+        case '.xlsx':
           iconImg = 'assets/images/excel.png';
           break;
-        case 'jpg':
-        case 'jpeg':
-        case 'png':
+        case '.jpg':
+        case '.jpeg':
+        case '.png':
           iconImg = 'assets/images/image.png';
           break;
-        case 'txt':
+        case '.txt':
           iconImg = 'assets/images/txt.png';
           break;
-        case 'mp3':
+        case '.mp3':
           iconImg = 'assets/images/mp3.png';
           break;
-        case 'mp4':
+        case '.mp4':
           iconImg = 'assets/images/video.png';
           break;
-        case 'rar':
-        case 'zip':
+        case '.rar':
+        case '.zip':
           iconImg = 'assets/images/zip.png';
           break;
-        case 'psd':
+        case '.psd':
           iconImg = 'assets/images/psd.png';
           break;
         default:
