@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:flutter/services.dart';
 
 import 'selection_icon.dart';
-import 'click_effect.dart';
 
 class FileManager extends StatefulWidget {
   FileManager({@required this.sDCardDir});
@@ -120,7 +119,7 @@ class _FileManagerState extends State<FileManager> {
     int length = 0;
     if (!isFile) length = removePointBegin(file);
 
-    return ClickEffect(
+    return InkWell(
       child: Column(
         children: <Widget>[
           ListTile(
