@@ -69,6 +69,7 @@ class _FileManagerState extends State<FileManager> {
           backgroundColor: Color(0xfff3f3f3),
           body: Scrollbar(
             child: ListView.builder(
+              physics: BouncingScrollPhysics(),
               controller: controller,
               itemCount: files.length != 0 ? files.length : 1,
               itemBuilder: (BuildContext context, int index) {
