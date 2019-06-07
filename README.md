@@ -55,3 +55,6 @@ private void openFile(Context context, String path) {
 ```
 ### 效果图
 <img src="assets/images/image.jpg" width="360" height="640"/>
+
+##### 简书 [flutter版的文件管理器](https://www.jianshu.com/p/a332a20c4ddf)
+##### 掘金 [flutter版的文件管理器](https://juejin.im/post/5be3df59e51d4537fc7ad814)
