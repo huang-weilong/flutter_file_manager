@@ -1,16 +1,16 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_file_manager/common.dart';
+import 'package:flutter_file_manager/file_manager.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:simple_permissions/simple_permissions.dart';
-
-import 'file_manager.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
 void main() {
-  String sDCardDir;
-
   Future<void> getSDCardDir() async {
-    sDCardDir = (await getExternalStorageDirectory()).path;
+    Common().sDCardDir = (await getExternalStorageDirectory()).path;
   }
 
   // Permission check
@@ -30,16 +30,12 @@ void main() {
     }
   }
 
-  Future.wait([getPermission()]).then((result) {
-    runApp(MyApp(sDCardDir: sDCardDir));
+  Future.wait([initializeDateFormatting("zh_CN", null), getPermission()]).then((result) {
+    runApp(MyApp());
   });
 }
 
 class MyApp extends StatelessWidget {
-  MyApp({@required this.sDCardDir});
-
-  final String sDCardDir;
-
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -48,7 +44,7 @@ class MyApp extends StatelessWidget {
 //        platform: TargetPlatform.iOS,
         primarySwatch: Colors.blue,
       ),
-      home: FileManager(sDCardDir: sDCardDir),
+      home: FileManager(),
     );
   }
 }

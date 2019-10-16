@@ -12,7 +12,7 @@ import 'package:flutter_file_manager/main.dart';
 void main() {
   testWidgets('Counter increments smoke test', (WidgetTester tester) async {
     // Build our app and trigger a frame.
-    await tester.pumpWidget(new MyApp(sDCardDir: 'none'));
+    await tester.pumpWidget(new MyApp());
 
     // Verify that our counter starts at 0.
     expect(find.text('0'), findsOneWidget);
