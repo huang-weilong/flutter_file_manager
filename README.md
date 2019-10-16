@@ -9,8 +9,7 @@ void initPathFiles(String path) {
       setState(() {
         parentDir = Directory(path);
         count = 0;
-        files.clear();
-        files = parentDir.listSync();
+        sortFiles();
         count = _calculatePointBegin(files);
       });
     } catch (e) {

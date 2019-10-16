@@ -165,14 +165,32 @@ class _FileManagerState extends State<FileManager> {
       setState(() {
         parentDir = Directory(path);
         count = 0;
-        files.clear();
-        files = parentDir.listSync();
+        sortFiles();
         count = _calculatePointBegin(files);
       });
     } catch (e) {
       print(e);
       print("Directory does not exist！");
     }
+  }
+
+  // 排序
+  void sortFiles() {
+    List<FileSystemEntity> _files = [];
+    List<FileSystemEntity> _folder = [];
+
+    for (var v in parentDir.listSync()) {
+      if (FileSystemEntity.isFileSync(v.path))
+        _files.add(v);
+      else
+        _folder.add(v);
+    }
+
+    _files.sort((a, b) => a.path.toLowerCase().compareTo(b.path.toLowerCase()));
+    _folder.sort((a, b) => a.path.toLowerCase().compareTo(b.path.toLowerCase()));
+    files.clear();
+    files.addAll(_folder);
+    files.addAll(_files);
   }
 
   Future openFile(String path) async {
