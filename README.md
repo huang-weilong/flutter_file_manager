@@ -1,20 +1,20 @@
 # flutter_file_manager
 
-一个flutter版本的文件管理器，查看SD卡内的文件
+一个flutter版本的文件管理器，查看SD卡内的文件（android）
 
-### 查找文件的方法
+### 列出当前文件夹下所有的文件、文件夹
 ``` dart
-Future<void> initDirectory(String path) async {
+void initPathFiles(String path) {
     try {
       setState(() {
-        var directory = Directory(path);
+        parentDir = Directory(path);
         count = 0;
-        parentDir = directory;
         files.clear();
-        files = directory.listSync();
-        controller.jumpTo(0.0);
+        files = parentDir.listSync();
+        count = _calculatePointBegin(files);
       });
     } catch (e) {
+      print(e);
       print("Directory does not exist！");
     }
   }
