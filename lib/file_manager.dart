@@ -1,9 +1,11 @@
 import 'dart:async';
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:flutter/services.dart';
 import 'package:flutter_file_manager/common.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:path/path.dart' as p;
 import 'package:intl/intl.dart';
 
@@ -93,6 +95,26 @@ class _FileManagerState extends State<FileManager> {
       onTap: () {
         openFile(file.path);
       },
+      onLongPress: () {
+        showModalBottomSheet(
+          context: context,
+          builder: (BuildContext context) {
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                CupertinoButton(
+                  pressedOpacity: 0.6,
+                  child: Text('重命名', style: TextStyle(color: Color(0xff333333))),
+                  onPressed: () {
+                    Navigator.pop(context);
+                    renameFile(file);
+                  },
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
   }
 
@@ -125,6 +147,26 @@ class _FileManagerState extends State<FileManager> {
         position.add(controller.offset);
         initPathFiles(file.path);
         jumpToPosition(true);
+      },
+      onLongPress: () {
+        showModalBottomSheet(
+          context: context,
+          builder: (BuildContext context) {
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                CupertinoButton(
+                  pressedOpacity: 0.6,
+                  child: Text('重命名', style: TextStyle(color: Color(0xff333333))),
+                  onPressed: () {
+                    Navigator.pop(context);
+                    renameFile(file);
+                  },
+                ),
+              ],
+            );
+          },
+        );
       },
     );
   }
@@ -172,6 +214,61 @@ class _FileManagerState extends State<FileManager> {
       print(e);
       print("Directory does not exist！");
     }
+  }
+
+  // 重命名
+  void renameFile(FileSystemEntity file) {
+    TextEditingController _controller = TextEditingController();
+
+    showCupertinoDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Scaffold(
+          backgroundColor: Colors.transparent,
+          body: Center(
+            child: CupertinoAlertDialog(
+              title: Text('重命名'),
+              content: Padding(
+                padding: EdgeInsets.only(top: 10.0),
+                child: TextField(
+                  controller: _controller,
+                  decoration: InputDecoration(
+                    focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(2.0)),
+                    hintText: '请输入新名称',
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(2.0)),
+                    contentPadding: EdgeInsets.all(10.0),
+                  ),
+                ),
+              ),
+              actions: <Widget>[
+                CupertinoDialogAction(
+                  child: Text('取消', style: TextStyle(color: Colors.blue)),
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                ),
+                CupertinoDialogAction(
+                  child: Text('确定', style: TextStyle(color: Colors.blue)),
+                  onPressed: () async {
+                    String newName = _controller.text;
+                    if (newName.trim().length == 0) {
+                      Fluttertoast.showToast(msg: '名字不能为空', gravity: ToastGravity.CENTER);
+                      return;
+                    }
+
+                    String newPath = file.parent.path + '/' + newName + p.extension(file.path);
+                    file.renameSync(newPath);
+                    initPathFiles(file.parent.path);
+
+                    Navigator.pop(context);
+                  },
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 
   // 排序
