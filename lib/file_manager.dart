@@ -110,6 +110,14 @@ class _FileManagerState extends State<FileManager> {
                     renameFile(file);
                   },
                 ),
+                CupertinoButton(
+                  pressedOpacity: 0.6,
+                  child: Text('删除', style: TextStyle(color: Color(0xff333333))),
+                  onPressed: () {
+                    Navigator.pop(context);
+                    deleteFile(file);
+                  },
+                ),
               ],
             );
           },
@@ -163,6 +171,14 @@ class _FileManagerState extends State<FileManager> {
                     renameFile(file);
                   },
                 ),
+                CupertinoButton(
+                  pressedOpacity: 0.6,
+                  child: Text('删除', style: TextStyle(color: Color(0xff333333))),
+                  onPressed: () {
+                    Navigator.pop(context);
+                    deleteFile(file);
+                  },
+                ),
               ],
             );
           },
@@ -214,6 +230,40 @@ class _FileManagerState extends State<FileManager> {
       print(e);
       print("Directory does not exist！");
     }
+  }
+
+  void deleteFile(FileSystemEntity file) {
+    showCupertinoDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return CupertinoAlertDialog(
+          title: Text('重命名'),
+          content: Text('删除后不可恢复'),
+          actions: <Widget>[
+            CupertinoDialogAction(
+              child: Text('取消', style: TextStyle(color: Colors.blue)),
+              onPressed: () {
+                Navigator.pop(context);
+              },
+            ),
+            CupertinoDialogAction(
+              child: Text('确定', style: TextStyle(color: Colors.blue)),
+              onPressed: () {
+                if (file.statSync().type == FileSystemEntityType.directory) {
+                  Directory directory = Directory(file.path);
+                  directory.deleteSync(recursive: true);
+                } else if (file.statSync().type == FileSystemEntityType.file) {
+                  file.deleteSync();
+                }
+
+                initPathFiles(file.parent.path);
+                Navigator.pop(context);
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   // 重命名
