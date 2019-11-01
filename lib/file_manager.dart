@@ -22,7 +22,6 @@ class _FileManagerState extends State<FileManager> {
   MethodChannel _channel = MethodChannel('openFileChannel');
   Directory parentDir;
   ScrollController controller = ScrollController();
-  int count = 0; // 记录当前文件夹中以 . 开头的文件和文件夹
   List<double> position = [];
 
   @override
@@ -48,8 +47,10 @@ class _FileManagerState extends State<FileManager> {
       onWillPop: onWillPop,
       child: Scaffold(
         appBar: AppBar(
-          title:
-              Text(parentDir?.path == Common().sDCardDir ? 'SD Card' : p.basename(parentDir.path), style: TextStyle(color: Colors.black)),
+          title: Text(
+            parentDir?.path == Common().sDCardDir ? 'SD Card' : p.basename(parentDir.path),
+            style: TextStyle(color: Colors.black),
+          ),
           centerTitle: true,
           backgroundColor: Color(0xffeeeeee),
           elevation: 0.0,
@@ -57,7 +58,7 @@ class _FileManagerState extends State<FileManager> {
               ? Container()
               : IconButton(icon: Icon(Icons.chevron_left, color: Colors.black), onPressed: onWillPop),
         ),
-        body: files.length == 0 || files.length == count
+        body: files.length == 0
             ? Center(child: Text('The folder is empty'))
             : Scrollbar(
                 child: ListView.builder(
@@ -65,8 +66,6 @@ class _FileManagerState extends State<FileManager> {
                   controller: controller,
                   itemCount: files.length,
                   itemBuilder: (BuildContext context, int index) {
-                    if (p.basename(files[index].path).substring(0, 1) == '.') return Container();
-
                     if (FileSystemEntity.isFileSync(files[index].path))
                       return _buildFileItem(files[index]);
                     else
@@ -222,9 +221,7 @@ class _FileManagerState extends State<FileManager> {
     try {
       setState(() {
         parentDir = Directory(path);
-        count = 0;
         sortFiles();
-        count = _calculatePointBegin(files);
       });
     } catch (e) {
       print(e);
@@ -327,6 +324,10 @@ class _FileManagerState extends State<FileManager> {
     List<FileSystemEntity> _folder = [];
 
     for (var v in parentDir.listSync()) {
+      // 去除以 .开头的文件/文件夹
+      if (p.basename(v.path).substring(0, 1) == '.') {
+        continue;
+      }
       if (FileSystemEntity.isFileSync(v.path))
         _files.add(v);
       else
