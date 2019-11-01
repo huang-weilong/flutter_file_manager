@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_file_manager/common.dart';
 import 'package:flutter_file_manager/file_manager.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:simple_permissions/simple_permissions.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
 void main() {
@@ -16,13 +16,9 @@ void main() {
   // Permission check
   Future<void> getPermission() async {
     if (Platform.isAndroid) {
-      bool permission1 = await SimplePermissions.checkPermission(Permission.ReadExternalStorage);
-      bool permission2 = await SimplePermissions.checkPermission(Permission.WriteExternalStorage);
-      if (!permission1) {
-        await SimplePermissions.requestPermission(Permission.ReadExternalStorage);
-      }
-      if (!permission2) {
-        await SimplePermissions.requestPermission(Permission.WriteExternalStorage);
+      PermissionStatus permission = await PermissionHandler().checkPermissionStatus(PermissionGroup.storage);
+      if (permission != PermissionStatus.granted) {
+        await PermissionHandler().requestPermissions([PermissionGroup.storage]);
       }
       await getSDCardDir();
     } else if (Platform.isIOS) {
