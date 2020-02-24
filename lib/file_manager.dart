@@ -6,6 +6,7 @@ import 'dart:io';
 import 'package:flutter/services.dart';
 import 'package:flutter_file_manager/common.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:open_file/open_file.dart';
 import 'package:path/path.dart' as p;
 import 'package:intl/intl.dart';
 
@@ -19,7 +20,6 @@ class FileManager extends StatefulWidget {
 
 class _FileManagerState extends State<FileManager> {
   List<FileSystemEntity> files = [];
-  MethodChannel _channel = MethodChannel('openFileChannel');
   Directory parentDir;
   ScrollController controller = ScrollController();
   List<double> position = [];
@@ -92,7 +92,7 @@ class _FileManagerState extends State<FileManager> {
         ),
       ),
       onTap: () {
-        openFile(file.path);
+        OpenFile.open(file.path);
       },
       onLongPress: () {
         showModalBottomSheet(
@@ -339,10 +339,5 @@ class _FileManagerState extends State<FileManager> {
     files.clear();
     files.addAll(_folder);
     files.addAll(_files);
-  }
-
-  Future openFile(String path) async {
-    final Map<String, dynamic> args = <String, dynamic>{'path': path};
-    await _channel.invokeMethod('openFile', args);
   }
 }

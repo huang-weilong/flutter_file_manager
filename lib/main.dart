@@ -9,6 +9,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
   Future<void> getSDCardDir() async {
     Common().sDCardDir = (await getExternalStorageDirectory()).path;
   }
