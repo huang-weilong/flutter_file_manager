@@ -43,16 +43,4 @@ flutter:
   uses-material-design: true
 
   assets:
-   - assets/images/folder.png
-   - assets/images/image.png
-   - assets/images/ppt.png
-   - assets/images/word.png
-   - assets/images/excel.png
-   - assets/images/txt.png
-   - assets/images/file.png
-   - assets/images/zip.png
-   - assets/images/mp3.png
-   - assets/images/video.png
-   - assets/images/psd.png
-   - assets/images/unknown.png
-   - assets/images/image.jpg
+   - assets/images/
