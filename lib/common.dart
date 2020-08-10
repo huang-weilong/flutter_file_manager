@@ -15,7 +15,7 @@ class Common {
 
   /////////////////////////////////////////////////////////////
 
-  String sDCardDir;
+  String rootPath; // 根路径
 
   String getFileSize(int fileSize) {
     String str = '';

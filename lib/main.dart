@@ -8,10 +8,15 @@ import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
+/// 思路分析
+/// 启动APP：1、获取到SD卡根路径；2、检查读写权限
+/// 进入首页，显示根路径下所有文件夹和文件
+/// ---点击文件 - 打开
+/// ---点击文件夹 - 显示该文件夹下的所有文件夹和文件
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   Future<void> getSDCardDir() async {
-    Common().sDCardDir = (await getExternalStorageDirectory()).path;
+    Common().rootPath = (await getExternalStorageDirectory()).path;
   }
 
   // Permission check

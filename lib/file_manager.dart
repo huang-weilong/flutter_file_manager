@@ -19,21 +19,20 @@ class FileManager extends StatefulWidget {
 }
 
 class _FileManagerState extends State<FileManager> {
-  List<FileSystemEntity> files = [];
-  Directory parentDir;
+  List<FileSystemEntity> currentFiles = []; // 当前路径下的文件夹和文件
+  Directory currentDir; // 当前路径
   ScrollController controller = ScrollController();
   List<double> position = [];
 
   @override
   void initState() {
     super.initState();
-    parentDir = Directory(Common().sDCardDir);
-    initPathFiles(Common().sDCardDir);
+    getCurrentPathFiles(Common().rootPath);
   }
 
   Future<bool> onWillPop() async {
-    if (parentDir.path != Common().sDCardDir) {
-      initPathFiles(parentDir.parent.path);
+    if (currentDir.path != Common().rootPath) {
+      getCurrentPathFiles(currentDir.parent.path);
       jumpToPosition(false);
     } else {
       SystemNavigator.pop();
@@ -48,28 +47,28 @@ class _FileManagerState extends State<FileManager> {
       child: Scaffold(
         appBar: AppBar(
           title: Text(
-            parentDir?.path == Common().sDCardDir ? 'SD Card' : p.basename(parentDir.path),
+            currentDir?.path == Common().rootPath ? 'SD Card' : p.basename(currentDir.path),
             style: TextStyle(color: Colors.black),
           ),
           centerTitle: true,
           backgroundColor: Color(0xffeeeeee),
           elevation: 0.0,
-          leading: parentDir?.path == Common().sDCardDir
+          leading: currentDir?.path == Common().rootPath
               ? Container()
               : IconButton(icon: Icon(Icons.chevron_left, color: Colors.black), onPressed: onWillPop),
         ),
-        body: files.length == 0
+        body: currentFiles.length == 0
             ? Center(child: Text('The folder is empty'))
             : Scrollbar(
                 child: ListView.builder(
                   physics: BouncingScrollPhysics(),
                   controller: controller,
-                  itemCount: files.length,
+                  itemCount: currentFiles.length,
                   itemBuilder: (BuildContext context, int index) {
-                    if (FileSystemEntity.isFileSync(files[index].path))
-                      return _buildFileItem(files[index]);
+                    if (FileSystemEntity.isFileSync(currentFiles[index].path))
+                      return _buildFileItem(currentFiles[index]);
                     else
-                      return _buildFolderItem(files[index]);
+                      return _buildFolderItem(currentFiles[index]);
                   },
                 ),
               ),
@@ -86,7 +85,7 @@ class _FileManagerState extends State<FileManager> {
           border: Border(bottom: BorderSide(width: 0.5, color: Color(0xffe5e5e5))),
         ),
         child: ListTile(
-          leading: Image.asset(Common().selectIcon(p.extension(file.path))),
+          leading: _buildImage(file.path),
           title: Text(file.path.substring(file.parent.path.length + 1)),
           subtitle: Text('$modifiedTime  ${Common().getFileSize(file.statSync().size)}', style: TextStyle(fontSize: 12.0)),
         ),
@@ -125,6 +124,17 @@ class _FileManagerState extends State<FileManager> {
     );
   }
 
+  Widget _buildImage(String path) {
+    switch (p.extension(path)) {
+      case '.jpg':
+      case '.jpeg':
+      case '.png':
+        return Image.file(File(path), width: 40.0, height: 40.0, fit: BoxFit.cover);
+      default:
+        return Image.asset(Common().selectIcon(p.extension(path)), width: 40.0, height: 40.0);
+    }
+  }
+
   Widget _buildFolderItem(FileSystemEntity file) {
     String modifiedTime = DateFormat('yyyy-MM-dd HH:mm:ss', 'zh_CN').format(file.statSync().modified.toLocal());
 
@@ -152,7 +162,7 @@ class _FileManagerState extends State<FileManager> {
         // 点进一个文件夹，记录进去之前的offset
         // 返回上一层跳回这个offset，再清除该offset
         position.add(controller.offset);
-        initPathFiles(file.path);
+        getCurrentPathFiles(file.path);
         jumpToPosition(true);
       },
       onLongPress: () {
@@ -216,12 +226,32 @@ class _FileManagerState extends State<FileManager> {
     }
   }
 
-  // 初始化该路径下的文件、文件夹
-  void initPathFiles(String path) {
+  // 获取当前路径下的文件/文件夹
+  void getCurrentPathFiles(String path) {
     try {
+      currentDir = Directory(path);
+      List<FileSystemEntity> _files = [];
+      List<FileSystemEntity> _folder = [];
+
+      // 遍历所有文件/文件夹
+      for (var v in currentDir.listSync()) {
+        // 去除以 .开头的文件/文件夹
+        if (p.basename(v.path).substring(0, 1) == '.') {
+          continue;
+        }
+        if (FileSystemEntity.isFileSync(v.path))
+          _files.add(v);
+        else
+          _folder.add(v);
+      }
+
+      // 排序
+      _files.sort((a, b) => a.path.toLowerCase().compareTo(b.path.toLowerCase()));
+      _folder.sort((a, b) => a.path.toLowerCase().compareTo(b.path.toLowerCase()));
       setState(() {
-        parentDir = Directory(path);
-        sortFiles();
+        currentFiles.clear();
+        currentFiles.addAll(_folder);
+        currentFiles.addAll(_files);
       });
     } catch (e) {
       print(e);
@@ -229,12 +259,13 @@ class _FileManagerState extends State<FileManager> {
     }
   }
 
+  // 删除文件
   void deleteFile(FileSystemEntity file) {
     showCupertinoDialog(
       context: context,
       builder: (BuildContext context) {
         return CupertinoAlertDialog(
-          title: Text('重命名'),
+          title: Text('确认删除？'),
           content: Text('删除后不可恢复'),
           actions: <Widget>[
             CupertinoDialogAction(
@@ -253,7 +284,7 @@ class _FileManagerState extends State<FileManager> {
                   file.deleteSync();
                 }
 
-                initPathFiles(file.parent.path);
+                getCurrentPathFiles(file.parent.path);
                 Navigator.pop(context);
               },
             ),
@@ -305,7 +336,7 @@ class _FileManagerState extends State<FileManager> {
 
                     String newPath = file.parent.path + '/' + newName + p.extension(file.path);
                     file.renameSync(newPath);
-                    initPathFiles(file.parent.path);
+                    getCurrentPathFiles(file.parent.path);
 
                     Navigator.pop(context);
                   },
@@ -316,28 +347,5 @@ class _FileManagerState extends State<FileManager> {
         );
       },
     );
-  }
-
-  // 排序
-  void sortFiles() {
-    List<FileSystemEntity> _files = [];
-    List<FileSystemEntity> _folder = [];
-
-    for (var v in parentDir.listSync()) {
-      // 去除以 .开头的文件/文件夹
-      if (p.basename(v.path).substring(0, 1) == '.') {
-        continue;
-      }
-      if (FileSystemEntity.isFileSync(v.path))
-        _files.add(v);
-      else
-        _folder.add(v);
-    }
-
-    _files.sort((a, b) => a.path.toLowerCase().compareTo(b.path.toLowerCase()));
-    _folder.sort((a, b) => a.path.toLowerCase().compareTo(b.path.toLowerCase()));
-    files.clear();
-    files.addAll(_folder);
-    files.addAll(_files);
   }
 }
