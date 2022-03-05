@@ -8,7 +8,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
-/// 思路分析
+/// 思路分析  安卓外部存储根目录/storage/emulated/0
 /// 启动APP：1、获取到SD卡根路径；2、检查读写权限
 /// 进入首页，显示根路径下所有文件夹和文件
 /// ---点击文件 - 打开
@@ -22,14 +22,13 @@ void main() {
   // Permission check
   Future<void> getPermission() async {
     if (Platform.isAndroid) {
-      PermissionStatus permission = await PermissionHandler().checkPermissionStatus(PermissionGroup.storage);
+      PermissionStatus permission = await Permission.storage.status;
+
       if (permission != PermissionStatus.granted) {
-        await PermissionHandler().requestPermissions([PermissionGroup.storage]);
+        await Permission.storage.request();
       }
-      await getSDCardDir();
-    } else if (Platform.isIOS) {
-      await getSDCardDir();
     }
+    await getSDCardDir();
   }
 
   Future.wait([initializeDateFormatting("zh_CN", null), getPermission()]).then((result) {
