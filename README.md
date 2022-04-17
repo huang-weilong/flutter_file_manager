@@ -4,54 +4,28 @@
 
 ### 列出当前文件夹下所有的文件、文件夹
 ``` dart
-void initPathFiles(String path) {
-    try {
-      setState(() {
-        parentDir = Directory(path);
-        count = 0;
-        sortFiles();
-        count = _calculatePointBegin(files);
-      });
-    } catch (e) {
-      print(e);
-      print("Directory does not exist！");
-    }
-  }
+Directory currentDir = Directory(path);
+List<FileSystemEntity> _files = [];
+List<FileSystemEntity> _folder = [];
+// 遍历所有文件/文件夹
+for (var v in currentDir.listSync()) {
+ // 去除以 .开头的文件/文件夹
+ if (p.basename(v.path).substring(0, 1) == '.') {
+   continue;
+ }
+ if (FileSystemEntity.isFileSync(v.path))
+   _files.add(v);
+ else
+   _folder.add(v);
+}
 ```
 
 ### 打开文件
-打开文件需要用到原生的Intent来实现，在dart中打开一个通道方法，将文件路径传给Java层调用
+使用`open_file: 3.2.1`插件
 ``` dart
-MethodChannel _channel = MethodChannel('openFileChannel');
-
-openFile(String path) {
-    final Map<String, dynamic> args = <String, dynamic>{'path': path};
-    _channel.invokeMethod('openFile', args);
-  }
+OpenFile.open(file.path);
 ```
-java代码：
-``` java
-private void openFile(Context context, String path) {
-        try {
-            if (!path.contains("file://")) {
-                path = "file://" + path;
-            }
-            //获取文件类型
-            String[] nameType = path.split("\\.");
-            String mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(nameType[1]);
 
-            Intent intent = new Intent();
-            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            intent.setAction(Intent.ACTION_VIEW);
-            //设置文件的路径和文件类型
-            intent.setDataAndType(Uri.parse(path), mimeType);
-            //跳转
-            context.startActivity(intent);
-        } catch (Exception e) {
-            System.out.println(e);
-        }
-    }
-```
 ### 效果图
 <img src="assets/images/image.jpg" width="360" height="640"/>
 
