@@ -45,7 +45,7 @@ class MyApp extends StatelessWidget {
 //        platform: TargetPlatform.iOS,
         primarySwatch: Colors.blue,
       ),
-      home: FileManager(),
+      home: FileManager(currentDirPath: Common().rootPath),
     );
   }
 }

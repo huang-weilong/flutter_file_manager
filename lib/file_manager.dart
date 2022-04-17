@@ -1,78 +1,67 @@
-import 'dart:async';
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'dart:io';
-import 'package:flutter/services.dart';
 import 'package:flutter_file_manager/common.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:open_file/open_file.dart';
 import 'package:path/path.dart' as p;
 import 'package:intl/intl.dart';
 
+import 'fade.dart';
+
 /// 点击一个文件夹，传入文件夹的路径，显示该文件夹下的文件和文件夹
 /// 点击一个文件，打开
 /// 返回上一层，返回上一层目录路径 [dir.parent.path]
 class FileManager extends StatefulWidget {
+  FileManager({@required this.currentDirPath});
+
+  final String currentDirPath; // 当前路径
+
   @override
   _FileManagerState createState() => _FileManagerState();
 }
 
 class _FileManagerState extends State<FileManager> {
   List<FileSystemEntity> currentFiles = []; // 当前路径下的文件夹和文件
-  Directory currentDir; // 当前路径
-  ScrollController controller = ScrollController();
-  List<double> position = [];
 
   @override
   void initState() {
     super.initState();
-    getCurrentPathFiles(Common().rootPath);
-  }
-
-  Future<bool> onWillPop() async {
-    if (currentDir.path != Common().rootPath) {
-      getCurrentPathFiles(currentDir.parent.path);
-      jumpToPosition(false);
-    } else {
-      SystemNavigator.pop();
-    }
-    return false;
+    getCurrentPathFiles(widget.currentDirPath);
   }
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: onWillPop,
-      child: Scaffold(
-        appBar: AppBar(
-          title: Text(
-            currentDir?.path == Common().rootPath ? 'SD Card' : p.basename(currentDir.path),
-            style: TextStyle(color: Colors.black),
-          ),
-          centerTitle: true,
-          backgroundColor: Color(0xffeeeeee),
-          elevation: 0.0,
-          leading: currentDir?.path == Common().rootPath
-              ? Container()
-              : IconButton(icon: Icon(Icons.chevron_left, color: Colors.black), onPressed: onWillPop),
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(
+          widget.currentDirPath == Common().rootPath ? 'SD Card' : p.basename(widget.currentDirPath),
+          style: TextStyle(color: Colors.black),
         ),
-        body: currentFiles.length == 0
-            ? Center(child: Text('The folder is empty'))
-            : Scrollbar(
-                child: ListView.builder(
-                  physics: BouncingScrollPhysics(),
-                  controller: controller,
-                  itemCount: currentFiles.length,
-                  itemBuilder: (BuildContext context, int index) {
-                    if (FileSystemEntity.isFileSync(currentFiles[index].path))
-                      return _buildFileItem(currentFiles[index]);
-                    else
-                      return _buildFolderItem(currentFiles[index]);
-                  },
-                ),
+        centerTitle: true,
+        backgroundColor: Color(0xffeeeeee),
+        elevation: 0.0,
+        leading: widget.currentDirPath == Common().rootPath
+            ? Container()
+            : IconButton(
+                icon: Icon(Icons.chevron_left, color: Colors.black),
+                onPressed: () {
+                  Navigator.pop(context);
+                },
               ),
       ),
+      body: currentFiles.length == 0
+          ? Center(child: Text('The folder is empty'))
+          : Scrollbar(
+              child: ListView(
+              physics: BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+              children: currentFiles.map((e) {
+                if (FileSystemEntity.isFileSync(e.path))
+                  return _buildFileItem(e);
+                else
+                  return _buildFolderItem(e);
+              }).toList(),
+            )),
     );
   }
 
@@ -169,11 +158,7 @@ class _FileManagerState extends State<FileManager> {
         ),
       ),
       onTap: () {
-        // 点进一个文件夹，记录进去之前的offset
-        // 返回上一层跳回这个offset，再清除该offset
-        position.add(controller.offset);
-        getCurrentPathFiles(file.path);
-        jumpToPosition(true);
+        Navigator.push(context, Fade(FileManager(currentDirPath: file.path)));
       },
       onLongPress: () {
         showModalBottomSheet(
@@ -224,22 +209,10 @@ class _FileManagerState extends State<FileManager> {
     return count;
   }
 
-  void jumpToPosition(bool isEnter) async {
-    if (isEnter)
-      controller.jumpTo(0.0);
-    else {
-      try {
-        await Future.delayed(Duration(milliseconds: 1));
-        controller?.jumpTo(position[position.length - 1]);
-      } catch (e) {}
-      position.removeLast();
-    }
-  }
-
   // 获取当前路径下的文件/文件夹
   void getCurrentPathFiles(String path) {
     try {
-      currentDir = Directory(path);
+      Directory currentDir = Directory(path);
       List<FileSystemEntity> _files = [];
       List<FileSystemEntity> _folder = [];
 
@@ -258,11 +231,10 @@ class _FileManagerState extends State<FileManager> {
       // 排序
       _files.sort((a, b) => a.path.toLowerCase().compareTo(b.path.toLowerCase()));
       _folder.sort((a, b) => a.path.toLowerCase().compareTo(b.path.toLowerCase()));
-      setState(() {
-        currentFiles.clear();
-        currentFiles.addAll(_folder);
-        currentFiles.addAll(_files);
-      });
+
+      currentFiles.clear();
+      currentFiles.addAll(_folder);
+      currentFiles.addAll(_files);
     } catch (e) {
       print(e);
       print("Directory does not exist！");
