@@ -85,29 +85,7 @@ class _FileManagerState extends State<FileManager> {
       onLongPress: () {
         showModalBottomSheet(
           context: context,
-          builder: (BuildContext context) {
-            return Column(
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                CupertinoButton(
-                  pressedOpacity: 0.6,
-                  child: Text('重命名', style: TextStyle(color: Color(0xff333333))),
-                  onPressed: () {
-                    Navigator.pop(context);
-                    renameFile(file);
-                  },
-                ),
-                CupertinoButton(
-                  pressedOpacity: 0.6,
-                  child: Text('删除', style: TextStyle(color: Color(0xff333333))),
-                  onPressed: () {
-                    Navigator.pop(context);
-                    deleteFile(file);
-                  },
-                ),
-              ],
-            );
-          },
+          builder: (_) => _buildModalBottomSheet(file),
         );
       },
     );
@@ -163,31 +141,34 @@ class _FileManagerState extends State<FileManager> {
       onLongPress: () {
         showModalBottomSheet(
           context: context,
-          builder: (BuildContext context) {
-            return Column(
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                CupertinoButton(
-                  pressedOpacity: 0.6,
-                  child: Text('重命名', style: TextStyle(color: Color(0xff333333))),
-                  onPressed: () {
-                    Navigator.pop(context);
-                    renameFile(file);
-                  },
-                ),
-                CupertinoButton(
-                  pressedOpacity: 0.6,
-                  child: Text('删除', style: TextStyle(color: Color(0xff333333))),
-                  onPressed: () {
-                    Navigator.pop(context);
-                    deleteFile(file);
-                  },
-                ),
-              ],
-            );
-          },
+          builder: (_) => _buildModalBottomSheet(file),
         );
       },
+    );
+  }
+
+  Widget _buildModalBottomSheet(FileSystemEntity file) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: <Widget>[
+        CupertinoButton(
+          pressedOpacity: 0.6,
+          child: Text('重命名', style: TextStyle(color: Color(0xff333333))),
+          onPressed: () {
+            Navigator.pop(context);
+            renameFile(file);
+          },
+        ),
+        Divider(height: 1.0),
+        CupertinoButton(
+          pressedOpacity: 0.6,
+          child: Text('删除', style: TextStyle(color: Color(0xff333333))),
+          onPressed: () {
+            Navigator.pop(context);
+            deleteFile(file);
+          },
+        ),
+      ],
     );
   }
 
@@ -257,16 +238,20 @@ class _FileManagerState extends State<FileManager> {
               },
             ),
             CupertinoDialogAction(
-              child: Text('确定', style: TextStyle(color: Colors.blue)),
+              child: Text('确定', style: TextStyle(color: Colors.red)),
               onPressed: () {
-                if (file.statSync().type == FileSystemEntityType.directory) {
-                  Directory directory = Directory(file.path);
-                  directory.deleteSync(recursive: true);
-                } else if (file.statSync().type == FileSystemEntityType.file) {
-                  file.deleteSync();
+                try {
+                  if (file.statSync().type == FileSystemEntityType.directory) {
+                    Directory directory = Directory(file.path);
+                    directory.deleteSync(recursive: true);
+                  } else if (file.statSync().type == FileSystemEntityType.file) {
+                    file.deleteSync();
+                  }
+                  getCurrentPathFiles(file.parent.path);
+                } on FileSystemException catch (e) {
+                  Fluttertoast.showToast(msg: e.message, gravity: ToastGravity.CENTER);
                 }
 
-                getCurrentPathFiles(file.parent.path);
                 Navigator.pop(context);
               },
             ),
