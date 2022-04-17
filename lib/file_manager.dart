@@ -125,11 +125,21 @@ class _FileManagerState extends State<FileManager> {
   }
 
   Widget _buildImage(String path) {
+    path = path.toLowerCase();
     switch (p.extension(path)) {
       case '.jpg':
       case '.jpeg':
       case '.png':
-        return Image.file(File(path), width: 40.0, height: 40.0, fit: BoxFit.cover);
+        return Image.file(
+          File(path),
+          width: 40.0,
+          height: 40.0,
+          // 解决加载大量本地图片可能会使程序崩溃的问题
+          cacheHeight: 90,
+          cacheWidth: 90,
+          fit: BoxFit.cover,
+          filterQuality: FilterQuality.none,
+        );
       default:
         return Image.asset(Common().selectIcon(p.extension(path)), width: 40.0, height: 40.0);
     }
