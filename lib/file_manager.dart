@@ -7,7 +7,7 @@ import 'package:open_file/open_file.dart';
 import 'package:path/path.dart' as p;
 import 'package:intl/intl.dart';
 
-import 'fade.dart';
+import 'route_style.dart';
 
 /// 点击一个文件夹，传入文件夹的路径，显示该文件夹下的文件和文件夹
 /// 点击一个文件，打开
@@ -80,7 +80,18 @@ class _FileManagerState extends State<FileManager> {
         ),
       ),
       onTap: () {
-        OpenFile.open(file.path);
+        if ('.jpeg.jpg.png'.indexOf(p.extension(file.path.toLowerCase())) != -1) {
+          var imgList = [];
+          currentFiles.forEach((element) {
+            if ('.jpeg.jpg.png'.indexOf(p.extension(element.path.toLowerCase())) != -1) {
+              imgList.add(element.path);
+            }
+          });
+          int index = imgList.indexOf(file.path);
+          Navigator.push(context, Scale(ImageView(imageList: imgList, index: index)));
+        } else {
+          OpenFile.open(file.path);
+        }
       },
       onLongPress: () {
         showModalBottomSheet(
@@ -313,6 +324,23 @@ class _FileManagerState extends State<FileManager> {
           ),
         );
       },
+    );
+  }
+}
+
+class ImageView extends StatelessWidget {
+  const ImageView({Key key, this.index, this.imageList}) : super(key: key);
+
+  final int index;
+  final List imageList;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: PageView(
+        controller: PageController(initialPage: index),
+        children: imageList.map((e) => Image.file(File(e))).toList(),
+      ),
     );
   }
 }
